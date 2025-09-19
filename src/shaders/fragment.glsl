@@ -5,6 +5,8 @@ uniform float uFresnelPower;
 uniform float uFireBallInensity;
 uniform float uFireBallSpeed;
 uniform float uTime;
+uniform float uFireBallRay;
+uniform sampler2D uTexture;
 varying vec3 vNormals;
 varying vec3 vPosition;
 
@@ -66,12 +68,14 @@ float fresnel(float amount, vec3 normal, vec3 view){
 void main() {  
     vec3 viewDir = normalize(cameraPosition - vPosition);
     vec3 normals = normalize(vNormals);
-    float n = simpleNoise(vUvs + uTime * uFireBallSpeed,50.0);
-    vec3 color = mix(uPrimaryColor * uFireBallInensity,uSecondaryColor,n);
+    vec2 noiseUV = fract(vec2(vUvs.x, vUvs.y - uTime * uFireBallSpeed));
+    vec3 texel = texture2D(uTexture,noiseUV).xyz;
+    vec3 color = mix(uPrimaryColor * uFireBallInensity,uSecondaryColor,smoothstep(0.0,0.5,texel.r));
     float fresnel = fresnel(uFresnelPower,normals,viewDir);
     vec3 fresnelColor = mix(uPrimaryColor, uSecondaryColor, smoothstep(0.0,0.3,fresnel));
     color = mix(color,fresnelColor,smoothstep(0.0,0.3,fresnel));
-    vec4 sunRays = vec4(uSecondaryColor,saturateFloat(n));
-    vec4 colour = vec4(color,1.0);
-    csm_DiffuseColor = mix(colour,sunRays,smoothstep(0.0,0.8,fresnel));
+    vec4 sunRays = vec4(uSecondaryColor * texel,texel.r);
+     vec4 colour = vec4(color,1.0);
+    csm_DiffuseColor = mix(colour,sunRays,smoothstep(0.0,uFireBallRay,fresnel));
+    //csm_DiffuseColor = texel;
 }
