@@ -68,7 +68,8 @@ float fresnel(float amount, vec3 normal, vec3 view){
 void main() {  
     vec3 viewDir = normalize(cameraPosition - vPosition);
     vec3 normals = normalize(vNormals);
-    vec2 noiseUV = fract(vec2(vUvs.x, vUvs.y - uTime * uFireBallSpeed));
+    vec2 invertedUvs = vUvs.yx;
+    vec2 noiseUV = fract(vec2(invertedUvs.x, invertedUvs.y - uTime * uFireBallSpeed));
     vec3 texel = texture2D(uTexture,noiseUV).xyz;
     vec3 color = mix(uPrimaryColor * uFireBallInensity,uSecondaryColor,smoothstep(0.0,0.5,texel.r));
     float fresnel = fresnel(uFresnelPower,normals,viewDir);
